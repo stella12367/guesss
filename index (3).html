@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Guess the Number</title>
+</head>
+<body style="background-color:lightblue">
+<center>
+    <div style="background-color: white; width: 300px; height: 350px;"><br> <br>
+        <h1>Guess the number</h1>
+        <p>I'm thinking of a number between 1 and 100.</p>
+        <p>tip:first do 1 and then 100 if its not one of those then do 50</p>
+        <input id="guessInput" type="number">
+        <button id="guessButton">Guess</button>
+        <button id="resetButton" style="display: none;">Play Again</button>
+        <p id="message"></p>
+        <p>Guesses: <span id="guessCount">0</span> / 10</p>
+    </div>
+    <script>
+        let randomNumber = Math.floor(Math.random() * 100) + 1;
+        let count = 0;
+        const maxGuesses = 10;
+        const guessInput = document.getElementById("guessInput");
+        const guessButton = document.getElementById("guessButton");
+        const resetButton = document.getElementById("resetButton");
+        const message = document.getElementById("message");
+        const guessCount = document.getElementById("guessCount");
+
+        guessButton.addEventListener("click", function() {
+            const userGuess = Number(guessInput.value);
+            if (!userGuess || userGuess < 1 || userGuess > 100) {
+                message.textContent = "Please enter a valid number between 1 and 100.";
+                message.style.color = "black";
+                return;
+            }
+            count++;
+            guessCount.textContent = count;
+            if (userGuess === randomNumber) {
+                message.textContent = `Correct! You guessed it in ${count} tries.`;
+                message.style.color = "green";
+                 endGame();
+            } else if (count >= maxGuesses) {
+                message.textContent = `Game Over! The number was ${randomNumber}.`;
+                message.style.color = "red";
+                endGame();
+            } else if (userGuess > randomNumber) {
+                message.textContent = "Too high! Try again.";
+                message.style.color = "red";
+            } else {
+                message.textContent = "Too low! Try again.";
+                message.style.color = "blue";
+            }
+        });
+
+        // Zorgt ervoor dat de Enter-toets werkt in het invoerveld
+        guessInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                guessButton.click();
+            }
+        });
+
+        function endGame() {
+            guessInput.disabled = true;
+            guessButton.style.display = "none";
+            resetButton.style.display = "inline-block";
+        }
+
+        resetButton.addEventListener("click", function() {
+            randomNumber = Math.floor(Math.random() * 100) + 1;
+            count = 0;
+            guessCount.textContent = count;
+            message.textContent = "";
+            guessInput.value = "";
+            guessInput.disabled = false;
+            guessButton.style.display = "inline-block";
+            resetButton.style.display = "none";
+        });
+    </script>
+</center>
+</body>
+</html>
