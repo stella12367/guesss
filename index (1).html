@@ -5,43 +5,55 @@
 </head>
 <body style="background-color:lightblue">
 <center>
-    <div style="background-color: white; width: 300px; height: 350px;"><br> <br>
+    <div style="background-color: white; width: 400px; height: 420px;"><br> <br>
         <h1>Guess the number</h1>
         <p>I'm thinking of a number between 1 and 100.</p>
-        <p>tip:first do 1 and then 100 if its not one of those then do 50</p>
         <input id="guessInput" type="number">
         <button id="guessButton">Guess</button>
         <button id="resetButton" style="display: none;">Play Again</button>
         <p id="message"></p>
         <p>Guesses: <span id="guessCount">0</span> / 10</p>
+        <p>Best Score: <span id="bestScore">--</span> guesses</p>
     </div>
-
     <script>
         let randomNumber = Math.floor(Math.random() * 100) + 1;
         let count = 0;
         const maxGuesses = 10;
-
+        
         const guessInput = document.getElementById("guessInput");
         const guessButton = document.getElementById("guessButton");
         const resetButton = document.getElementById("resetButton");
         const message = document.getElementById("message");
         const guessCount = document.getElementById("guessCount");
+        const bestScoreDisplay = document.getElementById("bestScore");
+
+        // Load best score on startup
+        let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
+        if (bestScore !== Infinity) {
+            bestScoreDisplay.textContent = bestScore;
+        }
 
         guessButton.addEventListener("click", function() {
             const userGuess = Number(guessInput.value);
-
             if (!userGuess || userGuess < 1 || userGuess > 100) {
                 message.textContent = "Please enter a valid number between 1 and 100.";
                 message.style.color = "black";
                 return;
             }
-
             count++;
             guessCount.textContent = count;
-
+            
             if (userGuess === randomNumber) {
                 message.textContent = `Correct! You guessed it in ${count} tries.`;
                 message.style.color = "green";
+                
+                // Update best score
+                if (count < bestScore) {
+                    bestScore = count;
+                    localStorage.setItem("guessBestScore", bestScore);
+                    bestScoreDisplay.textContent = bestScore;
+                    message.textContent += " New Best Score!";
+                }
                 endGame();
             } else if (count >= maxGuesses) {
                 message.textContent = `Game Over! The number was ${randomNumber}.`;
