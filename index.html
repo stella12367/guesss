@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Guess the Number</title>
+  </head>
+  <body style="background-color:lightblue">
+    <center>
+      <div style="background-color: white; width: 300px; height: 380px;"><br>
+        <br><h1>Guess the number</h1>
+        <p>I'm thinking of a number between 1 and 100.</p>
+
+        <input id="guessInput" type="number">
+        <button id="guessButton">Guess</button>
+        <button id="resetButton" style="display: none;">Play Again</button>
+        <p id="message"></p>
+        <p>Guesses: <span id="guessCount">0</span> / 10</p>
+        <!-- Best Score element toegevoegd -->
+        <p>Best Score: <span id="bestScore">--</span> guesses</p> 
+      </div>
+
+      <script>
+        let randomNumber = Math.floor(Math.random() * 100) + 1;
+        let count = 0;
+        const maxGuesses = 10;
+
+        const guessInput = document.getElementById("guessInput");
+        const guessButton = document.getElementById("guessButton");
+        const resetButton = document.getElementById("resetButton");
+        const message = document.getElementById("message");
+        const guessCount = document.getElementById("guessCount");
+        const bestScoreDisplay = document.getElementById("bestScore"); // Gekoppeld aan HTML
+
+        // Laad de beste score bij het opstarten
+        let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
+        if (bestScore !== Infinity) {
+          bestScoreDisplay.textContent = bestScore;
+        }
+
+        guessButton.addEventListener("click", function() {
+          const userGuess = Number(guessInput.value);
+
+          if (!userGuess || userGuess < 1 || userGuess > 100) {
+            message.textContent = "Please enter a valid number between 1 and 100.";
+            message.style.color = "black";
+            return;
+          }
+
+          count++;
+          guessCount.textContent = count;
+
+          if (userGuess === randomNumber) {
+            message.textContent = `Correct! You guessed it in ${count} tries.`;
+            message.style.color = "green";
+            endGame(true); // Doorgeven dat de speler heeft gewonnen
+          } else if (count >= maxGuesses) {
+            message.textContent = `Game Over! The number was ${randomNumber}.`;
+            message.style.color = "red";
+            endGame(false); // Doorgeven dat de speler heeft verloren
+          } else if (userGuess > randomNumber) {
+            message.textContent = "Too high! Try again.";
+            message.style.color = "red";
+          } else {
+            message.textContent = "Too low! Try again.";
+            message.style.color = "blue";
+          }
+        });
+
+        function endGame(won) {
+          guessInput.disabled = true;
+          guessButton.style.display = "none";
+          resetButton.style.display = "inline-block";
+
+          // Controleer en update de beste score als er gewonnen is
+          if (won) {
+            if (count < bestScore) {
+              bestScore = count;
+              localStorage.setItem("guessBestScore", bestScore); // Opslaan in browser
+              bestScoreDisplay.textContent = bestScore;
+              message.textContent += " New Best Score!";
+            }
+          }
+        }
+
+        resetButton.addEventListener("click", function() {
+          randomNumber = Math.floor(Math.random() * 100) + 1;
+          count = 0;
+          guessCount.textContent = count;
+          message.textContent = "";
+          guessInput.value = "";
+          guessInput.disabled = false;
+          guessButton.style.display = "inline-block";
+          resetButton.style.display = "none";
+        });
+      </script>
+    </center>
+  </body>
+</html>
