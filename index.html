@@ -3,19 +3,10 @@
 <head>
     <title>Guess the Number</title>
 </head>
-<!-- ID toegevoegd aan de body om de kleur aan te passen -->
 <body id="gameBody" style="background-color: lightblue; transition: background-color 0.5s ease;">
 <center>
-    <div style="background-color: white; width: 300px; height: 380px;></div></div> <br> <br>
-        <!DOCTYPE html>
-<html>
-<head>
-    <title>Guess the Number</title>
-</head>
-<!-- ID toegevoegd aan de body om de kleur aan te passen -->
-<body id="gameBody" style="background-color: lightblue; transition: background-color 0.5s ease;">
-<center>
-    <div style="background-color: white; width: 300px; height: 380px; border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1);"><br> <br>
+    <br><br>
+    <div style="background-color: white; width: 300px; height: 350px;"><br>
         <h1>Guess the number</h1>
         <p id="rangeText">I'm thinking of a number between 1 and 100.</p>
         <input id="guessInput" type="number">
@@ -23,16 +14,22 @@
         <button id="resetButton" style="display: none;">Play Again</button>
         <p id="message"></p>
         <p>Guesses: <span id="guessCount">0</span> / 10</p>
+        <p>Time: <span id="timerDisplay">0</span>s</p>
         <p>Best Score: <span id="bestScore">--</span> guesses</p>
+        <p>Best Time: <span id="bestTime">--</span>s</p>
     </div>
 
     <script>
         let randomNumber = Math.floor(Math.random() * 100) + 1;
         let count = 0;
         const maxGuesses = 10;
-        
         let minRange = 1;
         let maxRange = 100;
+
+        let startTime;
+        let timerInterval;
+        let gameStarted = false;
+        let finalTime = 0;
 
         const gameBody = document.getElementById("gameBody");
         const guessInput = document.getElementById("guessInput");
@@ -41,11 +38,30 @@
         const message = document.getElementById("message");
         const guessCount = document.getElementById("guessCount");
         const bestScoreDisplay = document.getElementById("bestScore");
+        const bestTimeDisplay = document.getElementById("bestTime");
         const rangeText = document.getElementById("rangeText");
+        const timerDisplay = document.getElementById("timerDisplay");
 
+        // Highscores laden uit localStorage
         let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
         if (bestScore !== Infinity) {
             bestScoreDisplay.textContent = bestScore;
+        }
+
+        let bestTime = localStorage.getItem("guessBestTime") ? Number(localStorage.getItem("guessBestTime")) : Infinity;
+        if (bestTime !== Infinity) {
+            bestTimeDisplay.textContent = bestTime;
+        }
+
+        function startTimer() {
+            if (!gameStarted) {
+                gameStarted = true;
+                startTime = Date.now();
+                timerInterval = setInterval(() => {
+                    finalTime = Math.floor((Date.now() - startTime) / 1000);
+                    timerDisplay.textContent = finalTime;
+                }, 1000);
+            }
         }
 
         guessInput.addEventListener("keydown", function(event) {
@@ -62,18 +78,21 @@
                 return;
             }
 
+            startTimer();
             count++;
             guessCount.textContent = count;
 
             if (userGuess === randomNumber) {
-                message.textContent = `Correct! You guessed it in ${count} tries.`;
+                clearInterval(timerInterval);
+                message.textContent = `Correct! You guessed it in ${count} tries within ${finalTime} seconds.`;
                 message.style.color = "green";
-                gameBody.style.background = "#2ecc71"; // Groen bij winst
+                gameBody.style.background = "#2ecc71";
                 endGame(true);
             } else if (count >= maxGuesses) {
+                clearInterval(timerInterval);
                 message.textContent = `Game Over! The number was ${randomNumber}.`;
                 message.style.color = "red";
-                gameBody.style.background = "#95a5a6"; // Grijs bij verlies
+                gameBody.style.background = "#95a5a6";
                 endGame(false);
             } else {
                 if (userGuess > randomNumber) {
@@ -87,22 +106,21 @@
                 }
                 
                 rangeText.textContent = `I'm thinking of a number between ${minRange} and ${maxRange}.`;
-
+                
                 if (count === 3) {
                     const isEven = randomNumber % 2 === 0 ? "EVEN" : "ODD";
                     message.textContent += ` (Psst... the number is ${isEven}!)`;
                 }
 
-                // NIEUW: Bereken hoe dichtbij de speler is (Warm/Koud feedback via kleur)
                 const verschil = Math.abs(userGuess - randomNumber);
                 if (verschil <= 5) {
-                    gameBody.style.backgroundColor = "#ff5722"; // Heel warm (Fel oranje-rood)
+                    gameBody.style.backgroundColor = "#ff5722";
                 } else if (verschil <= 15) {
-                    gameBody.style.backgroundColor = "#ff9800"; // Warm (Oranje)
+                    gameBody.style.backgroundColor = "#ff9800";
                 } else if (verschil <= 30) {
-                    gameBody.style.backgroundColor = "#ffeb3b"; // Lauw (Geel)
+                    gameBody.style.backgroundColor = "#ffeb3b";
                 } else {
-                    gameBody.style.backgroundColor = "#3498db"; // Koud (Blauw)
+                    gameBody.style.backgroundColor = "#3498db";
                 }
             }
         });
@@ -113,21 +131,40 @@
             resetButton.style.display = "inline-block";
             
             if (won) {
+                let newRecord = false;
+
+                // Check beste beurten score
                 if (count < bestScore) {
                     bestScore = count;
                     localStorage.setItem("guessBestScore", bestScore);
                     bestScoreDisplay.textContent = bestScore;
+                    newRecord = true;
+                }
+
+                // Check beste tijd score
+                if (finalTime < bestTime) {
+                    bestTime = finalTime;
+                    localStorage.setItem("guessBestTime", bestTime);
+                    bestTimeDisplay.textContent = bestTime;
+                    newRecord = true;
+                }
+
+                if (newRecord) {
                     message.textContent += " New Best Score!";
                 }
             }
         }
 
         resetButton.addEventListener("click", function() {
+            clearInterval(timerInterval);
+            gameStarted = false;
+            finalTime = 0;
+            timerDisplay.textContent = "0";
+            
             randomNumber = Math.floor(Math.random() * 100) + 1;
             count = 0;
             minRange = 1;
             maxRange = 100;
-            
             guessCount.textContent = count;
             message.textContent = "";
             rangeText.textContent = "I'm thinking of a number between 1 and 100.";
@@ -135,7 +172,7 @@
             guessInput.disabled = false;
             guessButton.style.display = "inline-block";
             resetButton.style.display = "none";
-            gameBody.style.backgroundColor = "lightblue"; // Reset achtergrondkleur
+            gameBody.style.backgroundColor = "lightblue";
         });
     </script>
 </center>
