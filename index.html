@@ -5,7 +5,7 @@
 </head>
 <body id="gameBody" style="background-color: lightblue; transition: background-color 0.5s ease;">
 <center>
-    <br><br>
+    <br>
     <div style="background-color: white; width: 300px; height: 350px;"><br>
         <h1>Guess the number</h1>
         <p id="rangeText">I'm thinking of a number between 1 and 100.</p>
@@ -18,14 +18,16 @@
         <p>Best Score: <span id="bestScore">--</span> guesses</p>
         <p>Best Time: <span id="bestTime">--</span>s</p>
     </div>
+    
+
+    <div id="marqueeContainer" style="width: 300px; margin-top: 15px; background-color: yellow;"></div>
 
     <script>
-        let randomNumber = Math.floor(Math.random() * 50) + 1;
+        let randomNumber = Math.floor(Math.random() * 100) + 1;
         let count = 0;
         const maxGuesses = 10;
         let minRange = 1;
-        let maxRange = 50;
-
+        let maxRange = 100;
         let startTime;
         let timerInterval;
         let gameStarted = false;
@@ -41,8 +43,9 @@
         const bestTimeDisplay = document.getElementById("bestTime");
         const rangeText = document.getElementById("rangeText");
         const timerDisplay = document.getElementById("timerDisplay");
+        const marqueeContainer = document.getElementById("marqueeContainer");
 
-        // Highscores laden uit localStorage
+      
         let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
         if (bestScore !== Infinity) {
             bestScoreDisplay.textContent = bestScore;
@@ -72,6 +75,7 @@
 
         guessButton.addEventListener("click", function() {
             const userGuess = Number(guessInput.value);
+
             if (!userGuess || userGuess < 1 || userGuess > 100) {
                 message.textContent = "Please enter a valid number between 1 and 100.";
                 message.style.color = "black";
@@ -104,15 +108,16 @@
                     message.style.color = "blue";
                     if (userGuess > minRange) minRange = userGuess + 1;
                 }
-                
+
                 rangeText.textContent = `I'm thinking of a number between ${minRange} and ${maxRange}.`;
-                
+
                 if (count === 3) {
                     const isEven = randomNumber % 2 === 0 ? "EVEN" : "ODD";
                     message.textContent += ` (Psst... the number is ${isEven}!)`;
                 }
 
                 const verschil = Math.abs(userGuess - randomNumber);
+
                 if (verschil <= 5) {
                     gameBody.style.backgroundColor = "#ff5722";
                 } else if (verschil <= 15) {
@@ -129,8 +134,9 @@
             guessInput.disabled = true;
             guessButton.style.display = "none";
             resetButton.style.display = "inline-block";
-            
-            if (won) {
+
+            if (won) {      marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">YE HEBT GEWONNEN</marquee>';
+
                 let newRecord = false;
 
                 // Check beste beurten score
@@ -160,7 +166,6 @@
             gameStarted = false;
             finalTime = 0;
             timerDisplay.textContent = "0";
-            
             randomNumber = Math.floor(Math.random() * 100) + 1;
             count = 0;
             minRange = 1;
@@ -173,6 +178,9 @@
             guessButton.style.display = "inline-block";
             resetButton.style.display = "none";
             gameBody.style.backgroundColor = "lightblue";
+            
+            // Marquee weer leegmaken bij een nieuw spel
+            marqueeContainer.innerHTML = "";
         });
     </script>
 </center>
