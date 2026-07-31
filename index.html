@@ -6,13 +6,14 @@
 <body id="gameBody" style="background-color: lightblue; transition: background-color 0.5s ease;">
 <center>
     <br>
-    <div style="background-color: white; width: 300px; height: 350px;"><br>
+    <div style="background-color: white; width: 300px; height: 380px;"><br>
         <h1>Guess the number</h1>
         <p id="rangeText">I'm thinking of a number between 1 and 100.</p>
         <input id="guessInput" type="number">
         <button id="guessButton">Guess</button>
         <button id="resetButton" style="display: none;">Play Again</button>
         <p id="message"></p>
+        <div id="medalDisplay" style="font-size: 2em; margin: 5px 0;"></div>
         <p>Guesses: <span id="guessCount">0</span> / 10</p>
         <p>Time: <span id="timerDisplay">0</span>s</p>
         <p>Best Score: <span id="bestScore">--</span> guesses</p>
@@ -42,6 +43,7 @@
         const rangeText = document.getElementById("rangeText");
         const timerDisplay = document.getElementById("timerDisplay");
         const marqueeContainer = document.getElementById("marqueeContainer");
+        const medalDisplay = document.getElementById("medalDisplay");
 
         let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
         if (bestScore !== Infinity) {
@@ -77,7 +79,6 @@
                 message.style.color = "black";
                 return;
             }
-
             startTimer();
             count++;
             guessCount.textContent = count;
@@ -131,27 +132,33 @@
 
             if (won) {
                 marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">YE HEBT GEWONNEN</marquee>';
-                let newRecord = false;
+                
+                // Medaillesysteem op basis van pogingen
+                if (count <= 3) {
+                    medalDisplay.textContent = "🥇 Goud!";
+                } else if (count <= 6) {
+                    medalDisplay.textContent = "🥈 Zilver!";
+                } else {
+                    medalDisplay.textContent = "🥉 Brons!";
+                }
 
+                let newRecord = false;
                 if (count < bestScore) {
                     bestScore = count;
                     localStorage.setItem("guessBestScore", bestScore);
                     bestScoreDisplay.textContent = bestScore;
                     newRecord = true;
                 }
-
                 if (finalTime < bestTime) {
                     bestTime = finalTime;
                     localStorage.setItem("guessBestTime", bestTime);
                     bestTimeDisplay.textContent = bestTime;
                     newRecord = true;
                 }
-
                 if (newRecord) {
                     message.textContent += " New Best Score!";
                 }
             } else {
-                // Verliezende marquee toegevoegd
                 marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">nou wil je .... opnieuw ja of neee?</marquee>';
             }
         }
@@ -167,6 +174,7 @@
             maxRange = 100;
             guessCount.textContent = count;
             message.textContent = "";
+            medalDisplay.textContent = "";
             rangeText.textContent = "I'm thinking of a number between 1 and 100.";
             guessInput.value = "";
             guessInput.disabled = false;
@@ -179,3 +187,4 @@
 </center>
 </body>
 </html>
+
