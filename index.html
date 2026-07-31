@@ -59,21 +59,21 @@
             guessCount.textContent = count;
 
             if (userGuess === randomNumber) {
-                message.textContent = `Correct! You guessed it in ${count} tries.`;
+                message.textContent = `Correct You guessed it in ${count} tries.`;
                 message.style.color = "green";
                 endGame(true);
             } else if (count >= maxGuesses) {
-                message.textContent = `Game Over! The number was ${randomNumber}.`;
+                message.textContent = `ya dinn't win but the number was ${randomNumber}.`;
                 message.style.color = "red";
                 endGame(false);
             } else {
                 // Update het dynamische bereik op basis van de gok
                 if (userGuess > randomNumber) {
-                    message.textContent = "Too high! go cave diving.";
+                    message.textContent = "its a high guess! go cave diving.";
                     message.style.color = "red";
                     if (userGuess < maxRange) maxRange = userGuess - 1;
                 } else {
-                    message.textContent = "Too low! guess at its PEAK.";
+                    message.textContent = "low! guess at its PEAK.";
                     message.style.color = "blue";
                     if (userGuess > minRange) minRange = userGuess + 1;
                 }
