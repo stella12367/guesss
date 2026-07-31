@@ -5,27 +5,34 @@
 </head>
 <body style="background-color:lightblue">
 <center>
-    <div style="background-color: white; width: 300px; height: 380px;"><br>
-        <br><h1>Guess the number</h1>
-        <p>I'm thinking of a number between 1 and 100.</p>
+    <div style="background-color: white; width: 300px; height: 380px;"><br> <br>
+        <h1>Guess the number</h1>
+        <!-- Aangepast ID om het bereik dynamisch te updaten -->
+        <p id="rangeText">I'm thinking of a number between 1 and 100.</p>
         <input id="guessInput" type="number">
         <button id="guessButton">Guess</button>
         <button id="resetButton" style="display: none;">Play Again</button>
         <p id="message"></p>
         <p>Guesses: <span id="guessCount">0</span> / 10</p>
-        <!-- Best Score element toegevoegd -->
         <p>Best Score: <span id="bestScore">--</span> guesses</p>
     </div>
+
     <script>
         let randomNumber = Math.floor(Math.random() * 100) + 1;
         let count = 0;
         const maxGuesses = 10;
+        
+        // Extra variabelen voor de dynamische hint
+        let minRange = 1;
+        let maxRange = 100;
+
         const guessInput = document.getElementById("guessInput");
         const guessButton = document.getElementById("guessButton");
         const resetButton = document.getElementById("resetButton");
         const message = document.getElementById("message");
         const guessCount = document.getElementById("guessCount");
-        const bestScoreDisplay = document.getElementById("bestScore"); // Gekoppeld aan HTML
+        const bestScoreDisplay = document.getElementById("bestScore");
+        const rangeText = document.getElementById("rangeText");
 
         // Laad de beste score bij het opstarten
         let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
@@ -47,22 +54,38 @@
                 message.style.color = "black";
                 return;
             }
+
             count++;
             guessCount.textContent = count;
+
             if (userGuess === randomNumber) {
                 message.textContent = `Correct! You guessed it in ${count} tries.`;
                 message.style.color = "green";
-                endGame(true); // Doorgeven dat de speler heeft gewonnen
+                endGame(true);
             } else if (count >= maxGuesses) {
                 message.textContent = `Game Over! The number was ${randomNumber}.`;
                 message.style.color = "red";
-                endGame(false); // Doorgeven dat de speler heeft verloren
-            } else if (userGuess > randomNumber) {
-                message.textContent = "Too high! go cave diving.";
-                message.style.color = "red";
+                endGame(false);
             } else {
-                message.textContent = "Too low! guess at its PEAK.";
-                message.style.color = "blue";
+                // Update het dynamische bereik op basis van de gok
+                if (userGuess > randomNumber) {
+                    message.textContent = "Too high! go cave diving.";
+                    message.style.color = "red";
+                    if (userGuess < maxRange) maxRange = userGuess - 1;
+                } else {
+                    message.textContent = "Too low! guess at its PEAK.";
+                    message.style.color = "blue";
+                    if (userGuess > minRange) minRange = userGuess + 1;
+                }
+                
+                // Toon het nieuwe nauwkeurigere bereik bovenin
+                rangeText.textContent = `I'm thinking of a number between ${minRange} and ${maxRange}.`;
+
+                // EXTRA HINT: Geeft na exact 3 beurten cadeau of het getal even of oneven is
+                if (count === 3) {
+                    const isEven = randomNumber % 2 === 0 ? "EVEN" : "ODD";
+                    message.textContent += ` (Psst... the number is ${isEven}!)`;
+                }
             }
         });
 
@@ -70,11 +93,11 @@
             guessInput.disabled = true;
             guessButton.style.display = "none";
             resetButton.style.display = "inline-block";
-            // Controleer en update de beste score als er gewonnen is
+            
             if (won) {
                 if (count < bestScore) {
                     bestScore = count;
-                    localStorage.setItem("guessBestScore", bestScore); // Opslaan in browser
+                    localStorage.setItem("guessBestScore", bestScore);
                     bestScoreDisplay.textContent = bestScore;
                     message.textContent += " New Best Score!";
                 }
@@ -84,8 +107,138 @@
         resetButton.addEventListener("click", function() {
             randomNumber = Math.floor(Math.random() * 100) + 1;
             count = 0;
+            // Reset het bereik voor het nieuwe spel
+            minRange = 1;
+            maxRange = 100;
+            
             guessCount.textContent = count;
             message.textContent = "";
+            rangeText.textContent = "I'm thinking of a number between 1 and 100.";
+            guessInput.value = "";
+            guessInput.disabled = false;
+            guessButton.style.display = "inline-block";
+            resetButton.style.display = "none";
+        });
+    </script>
+</center>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Guess the Number</title>
+</head>
+<body style="background-color:lightblue">
+<center>
+    <div style="background-color: white; width: 300px; height: 380px;"><br> <br>
+        <h1>Guess the number</h1>
+        <!-- Aangepast ID om het bereik dynamisch te updaten -->
+        <p id="rangeText">I'm thinking of a number between 1 and 100.</p>
+        <input id="guessInput" type="number">
+        <button id="guessButton">Guess</button>
+        <button id="resetButton" style="display: none;">Play Again</button>
+        <p id="message"></p>
+        <p>Guesses: <span id="guessCount">0</span> / 10</p>
+        <p>Best Score: <span id="bestScore">--</span> guesses</p>
+    </div>
+
+    <script>
+        let randomNumber = Math.floor(Math.random() * 100) + 1;
+        let count = 0;
+        const maxGuesses = 10;
+        
+        // Extra variabelen voor de dynamische hint
+        let minRange = 1;
+        let maxRange = 100;
+
+        const guessInput = document.getElementById("guessInput");
+        const guessButton = document.getElementById("guessButton");
+        const resetButton = document.getElementById("resetButton");
+        const message = document.getElementById("message");
+        const guessCount = document.getElementById("guessCount");
+        const bestScoreDisplay = document.getElementById("bestScore");
+        const rangeText = document.getElementById("rangeText");
+
+        // Laad de beste score bij het opstarten
+        let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
+        if (bestScore !== Infinity) {
+            bestScoreDisplay.textContent = bestScore;
+        }
+
+        // Luister naar de Enter-toets in het invoerveld
+        guessInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                guessButton.click();
+            }
+        });
+
+        guessButton.addEventListener("click", function() {
+            const userGuess = Number(guessInput.value);
+            if (!userGuess || userGuess < 1 || userGuess > 100) {
+                message.textContent = "Please enter a valid number between 1 and 100.";
+                message.style.color = "black";
+                return;
+            }
+
+            count++;
+            guessCount.textContent = count;
+
+            if (userGuess === randomNumber) {
+                message.textContent = `Correct! You guessed it in ${count} tries.`;
+                message.style.color = "green";
+                endGame(true);
+            } else if (count >= maxGuesses) {
+                message.textContent = `Game Over! The number was ${randomNumber}.`;
+                message.style.color = "red";
+                endGame(false);
+            } else {
+                // Update het dynamische bereik op basis van de gok
+                if (userGuess > randomNumber) {
+                    message.textContent = "Too high! go cave diving.";
+                    message.style.color = "red";
+                    if (userGuess < maxRange) maxRange = userGuess - 1;
+                } else {
+                    message.textContent = "Too low! guess at its PEAK.";
+                    message.style.color = "blue";
+                    if (userGuess > minRange) minRange = userGuess + 1;
+                }
+                
+                // Toon het nieuwe nauwkeurigere bereik bovenin
+                rangeText.textContent = `I'm thinking of a number between ${minRange} and ${maxRange}.`;
+
+                // EXTRA HINT: Geeft na exact 3 beurten cadeau of het getal even of oneven is
+                if (count === 3) {
+                    const isEven = randomNumber % 2 === 0 ? "EVEN" : "ODD";
+                    message.textContent += ` (Psst... the number is ${isEven}!)`;
+                }
+            }
+        });
+
+        function endGame(won) {
+            guessInput.disabled = true;
+            guessButton.style.display = "none";
+            resetButton.style.display = "inline-block";
+            
+            if (won) {
+                if (count < bestScore) {
+                    bestScore = count;
+                    localStorage.setItem("guessBestScore", bestScore);
+                    bestScoreDisplay.textContent = bestScore;
+                    message.textContent += " New Best Score!";
+                }
+            }
+        }
+
+        resetButton.addEventListener("click", function() {
+            randomNumber = Math.floor(Math.random() * 100) + 1;
+            count = 0;
+            // Reset het bereik voor het nieuwe spel
+            minRange = 1;
+            maxRange = 100;
+            
+            guessCount.textContent = count;
+            message.textContent = "";
+            rangeText.textContent = "I'm thinking of a number between 1 and 100.";
             guessInput.value = "";
             guessInput.disabled = false;
             guessButton.style.display = "inline-block";
