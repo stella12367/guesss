@@ -1,1 +1,3 @@
 console.log(secretNumber);
+console.log(guess);
+console.log(guesses);
