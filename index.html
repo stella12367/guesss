@@ -18,8 +18,6 @@
         <p>Best Score: <span id="bestScore">--</span> guesses</p>
         <p>Best Time: <span id="bestTime">--</span>s</p>
     </div>
-    
-
     <div id="marqueeContainer" style="width: 300px; margin-top: 15px; background-color: yellow;"></div>
 
     <script>
@@ -45,7 +43,6 @@
         const timerDisplay = document.getElementById("timerDisplay");
         const marqueeContainer = document.getElementById("marqueeContainer");
 
-      
         let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
         if (bestScore !== Infinity) {
             bestScoreDisplay.textContent = bestScore;
@@ -75,7 +72,6 @@
 
         guessButton.addEventListener("click", function() {
             const userGuess = Number(guessInput.value);
-
             if (!userGuess || userGuess < 1 || userGuess > 100) {
                 message.textContent = "Please enter a valid number between 1 and 100.";
                 message.style.color = "black";
@@ -108,7 +104,6 @@
                     message.style.color = "blue";
                     if (userGuess > minRange) minRange = userGuess + 1;
                 }
-
                 rangeText.textContent = `I'm thinking of a number between ${minRange} and ${maxRange}.`;
 
                 if (count === 3) {
@@ -117,7 +112,6 @@
                 }
 
                 const verschil = Math.abs(userGuess - randomNumber);
-
                 if (verschil <= 5) {
                     gameBody.style.backgroundColor = "#ff5722";
                 } else if (verschil <= 15) {
@@ -135,11 +129,10 @@
             guessButton.style.display = "none";
             resetButton.style.display = "inline-block";
 
-            if (won) {      marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">YE HEBT GEWONNEN</marquee>';
-
+            if (won) {
+                marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">YE HEBT GEWONNEN</marquee>';
                 let newRecord = false;
 
-                // Check beste beurten score
                 if (count < bestScore) {
                     bestScore = count;
                     localStorage.setItem("guessBestScore", bestScore);
@@ -147,7 +140,6 @@
                     newRecord = true;
                 }
 
-                // Check beste tijd score
                 if (finalTime < bestTime) {
                     bestTime = finalTime;
                     localStorage.setItem("guessBestTime", bestTime);
@@ -158,6 +150,9 @@
                 if (newRecord) {
                     message.textContent += " New Best Score!";
                 }
+            } else {
+                // Verliezende marquee toegevoegd
+                marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">nou wil je .... opnieuw ja of neee?</marquee>';
             }
         }
 
@@ -178,8 +173,6 @@
             guessButton.style.display = "inline-block";
             resetButton.style.display = "none";
             gameBody.style.backgroundColor = "lightblue";
-            
-            // Marquee weer leegmaken bij een nieuw spel
             marqueeContainer.innerHTML = "";
         });
     </script>
