@@ -1,190 +1,201 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Guess the Number</title>
+<title>Guess the Number</title>
 </head>
 <body id="gameBody" style="background-color: lightblue; transition: background-color 0.5s ease;">
 <center>
-    <br>
-    <div style="background-color: white; width: 300px; height: 430px;"><br>
-        <h1>Guess the number</h1>
-        <p id="rangeText">I'm thinking of a number between 1 and 100.</p>
-        <input id="guessInput" type="number">
-        <button id="guessButton">Guess</button>
-        <button id="resetButton" style="display: none;">Play Again</button>
-        <p id="message"></p>
-        <div id="medalDisplay" style="font-size: 2em; margin: 5px 0;"></div>
-        <p>Guesses: <span id="guessCount">0</span> / 10</p>
-        <p>Time: <span id="timerDisplay">0</span>s</p>
-        <p>Best Score: <span id="bestScore">--</span> guesses</p>
-        <p>Best Time: <span id="bestTime">--</span>s</p>
-    </div>
-    <div id="marqueeContainer" style="width: 300px; margin-top: 15px; background-color: yellow;"></div>
+<br><br>
+<div style="background-color: white; width: 300px; height: 430px;"><br>
+<h1>Guess the number</h1>
+<label for="difficultySelect">Difficulty: </label>
+<select id="difficultySelect">
+  <option value="easy">Easy (1–50)</option>
+  <option value="medium" selected>Medium (1–100)</option>
+  <option value="hard">Hard (1–500)</option>
+</select>
+<p id="rangeText">I'm thinking of a number between 1 and 100.</p>
+<input id="guessInput" type="number">
+<button id="guessButton">Guess</button>
+<button id="resetButton" style="display: none;">Play Again</button>
+<p id="message"></p>
+<p id="medalMessage" style="font-size: 1.2em; font-weight: bold; margin: 5px 0;"></p>
+<p>Guesses: <span id="guessCount">0</span> / 10</p>
+<p>Time: <span id="timerDisplay">0</span>s</p>
+<p>Best Score: <span id="bestScore">--</span> guesses</p>
+<p>Best Time: <span id="bestTime">--</span>s</p>
+</div>
+<div id="marqueeContainer" style="width: 300px; margin-top: 15px; background-color: yellow;"></div>
+<script>
+let currentMax = 100;
+let randomNumber = Math.floor(Math.random() * currentMax) + 1;
+let count = 0;
+const maxGuesses = 10;
+let minRange = 1;
+let maxRange = 100;
+let startTime;
+let timerInterval;
+let gameStarted = false;
+let finalTime = 0;
 
-    <script>
-        let randomNumber = Math.floor(Math.random() * 100) + 1;
-        let count = 0;
-        const maxGuesses = 10;
-        let minRange = 1;
-        let maxRange = 100;
-        let startTime;
-        let timerInterval;
-        let gameStarted = false;
-        let finalTime = 0;
+const gameBody = document.getElementById("gameBody");
+const guessInput = document.getElementById("guessInput");
+const guessButton = document.getElementById("guessButton");
+const resetButton = document.getElementById("resetButton");
+const message = document.getElementById("message");
+const medalMessage = document.getElementById("medalMessage");
+const guessCount = document.getElementById("guessCount");
+const bestScoreDisplay = document.getElementById("bestScore");
+const bestTimeDisplay = document.getElementById("bestTime");
+const rangeText = document.getElementById("rangeText");
+const timerDisplay = document.getElementById("timerDisplay");
+const marqueeContainer = document.getElementById("marqueeContainer");
+const difficultySelect = document.getElementById("difficultySelect");
 
-        const gameBody = document.getElementById("gameBody");
-        const guessInput = document.getElementById("guessInput");
-        const guessButton = document.getElementById("guessButton");
-        const resetButton = document.getElementById("resetButton");
-        const message = document.getElementById("message");
-        const guessCount = document.getElementById("guessCount");
-        const bestScoreDisplay = document.getElementById("bestScore");
-        const bestTimeDisplay = document.getElementById("bestTime");
-        const rangeText = document.getElementById("rangeText");
-        const timerDisplay = document.getElementById("timerDisplay");
-        const marqueeContainer = document.getElementById("marqueeContainer");
-        const medalDisplay = document.getElementById("medalDisplay");
+let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
+if (bestScore !== Infinity) { bestScoreDisplay.textContent = bestScore; }
+let bestTime = localStorage.getItem("guessBestTime") ? Number(localStorage.getItem("guessBestTime")) : Infinity;
+if (bestTime !== Infinity) { bestTimeDisplay.textContent = bestTime; }
 
-        let bestScore = localStorage.getItem("guessBestScore") ? Number(localStorage.getItem("guessBestScore")) : Infinity;
-        if (bestScore !== Infinity) {
-            bestScoreDisplay.textContent = bestScore;
-        }
+function setDifficultyMax() {
+  const val = difficultySelect.value;
+  if (val === "easy") currentMax = 50;
+  else if (val === "medium") currentMax = 100;
+  else if (val === "hard") currentMax = 500;
+  maxRange = currentMax;
+}
 
-        let bestTime = localStorage.getItem("guessBestTime") ? Number(localStorage.getItem("guessBestTime")) : Infinity;
-        if (bestTime !== Infinity) {
-            bestTimeDisplay.textContent = bestTime;
-        }
+function resetGame() {
+  clearInterval(timerInterval);
+  gameStarted = false;
+  finalTime = 0;
+  timerDisplay.textContent = "0";
+  setDifficultyMax();
+  randomNumber = Math.floor(Math.random() * currentMax) + 1;
+  count = 0;
+  minRange = 1;
+  guessCount.textContent = count;
+  message.textContent = "";
+  medalMessage.textContent = "";
+  rangeText.textContent = `I'm thinking of a number between 1 and ${currentMax}.`;
+  guessInput.value = "";
+  guessInput.disabled = false;
+  guessButton.style.display = "inline-block";
+  resetButton.style.display = "none";
+  gameBody.style.backgroundColor = "lightblue";
+  marqueeContainer.innerHTML = "";
+}
 
-        function startTimer() {
-            if (!gameStarted) {
-                gameStarted = true;
-                startTime = Date.now();
-                timerInterval = setInterval(() => {
-                    finalTime = Math.floor((Date.now() - startTime) / 1000);
-                    timerDisplay.textContent = finalTime;
-                }, 1000);
-            }
-        }
+difficultySelect.addEventListener("change", resetGame);
 
-        guessInput.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                guessButton.click();
-            }
-        });
+function startTimer() {
+  if (!gameStarted) {
+    gameStarted = true;
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      finalTime = Math.floor((Date.now() - startTime) / 1000);
+      timerDisplay.textContent = finalTime;
+    }, 1000);
+  }
+}
 
-        guessButton.addEventListener("click", function() {
-            const userGuess = Number(guessInput.value);
-            if (!userGuess || userGuess < 1 || userGuess > 100) {
-                message.textContent = "Please enter a valid number between 1 and 100.";
-                message.style.color = "black";
-                return;
-            }
-            startTimer();
-            count++;
-            guessCount.textContent = count;
+guessInput.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    guessButton.click();
+  }
+});
 
-            if (userGuess === randomNumber) {
-                clearInterval(timerInterval);
-                message.textContent = `Correct! You guessed it in ${count} tries within ${finalTime} seconds.`;
-                message.style.color = "green";
-                gameBody.style.background = "#2ecc71";
-                endGame(true);
-            } else if (count >= maxGuesses) {
-                clearInterval(timerInterval);
-                message.textContent = `Game Over! The number was ${randomNumber}.`;
-                message.style.color = "red";
-                gameBody.style.background = "#95a5a6";
-                endGame(false);
-            } else {
-                if (userGuess > randomNumber) {
-                    message.textContent = "Too high! go cave diving.";
-                    message.style.color = "red";
-                    if (userGuess < maxRange) maxRange = userGuess - 1;
-                } else {
-                    message.textContent = "Too low! guess at its PEAK.";
-                    message.style.color = "blue";
-                    if (userGuess > minRange) minRange = userGuess + 1;
-                }
-                rangeText.textContent = `I'm thinking of a number between ${minRange} and ${maxRange}.`;
+guessButton.addEventListener("click", function() {
+  const userGuess = Number(guessInput.value);
+  if (!userGuess || userGuess < 1 || userGuess > currentMax) {
+    message.textContent = `Please enter a valid number between 1 and ${currentMax}.`;
+    message.style.color = "black";
+    return;
+  }
+  startTimer();
+  count++;
+  guessCount.textContent = count;
+  if (userGuess === randomNumber) {
+    clearInterval(timerInterval);
+    message.textContent = `Correct! You guessed it in ${count} tries within ${finalTime} seconds.`;
+    message.style.color = "green";
+    gameBody.style.background = "#2ecc71";
+    endGame(true);
+  } else if (count >= maxGuesses) {
+    clearInterval(timerInterval);
+    message.textContent = `Game Over! The number was ${randomNumber}.`;
+    message.style.color = "red";
+    gameBody.style.background = "#95a5a6";
+    endGame(false);
+  } else {
+    if (userGuess > randomNumber) {
+      message.textContent = "Too high! go cave diving.";
+      message.style.color = "red";
+      if (userGuess < maxRange) maxRange = userGuess - 1;
+    } else {
+      message.textContent = "Too low! guess at its PEAK.";
+      message.style.color = "blue";
+      if (userGuess > minRange) minRange = userGuess + 1;
+    }
+    rangeText.textContent = `I'm thinking of a number between ${minRange} and ${maxRange}.`;
+    if (count === 3) {
+      const isEven = randomNumber % 2 === 0 ? "EVEN" : "ODD";
+      message.textContent += ` (Psst... the number is ${isEven}!)`;
+    }
+    const verschil = Math.abs(userGuess - randomNumber);
+    if (verschil <= 5) {
+      gameBody.style.backgroundColor = "#ff5722";
+    } else if (verschil <= 15) {
+      gameBody.style.backgroundColor = "#ff9800";
+    } else if (verschil <= 30) {
+      gameBody.style.backgroundColor = "#ffeb3b";
+    } else {
+      gameBody.style.backgroundColor = "#3498db";
+    }
+  }
+});
 
-                if (count === 3) {
-                    const isEven = randomNumber % 2 === 0 ? "EVEN" : "ODD";
-                    message.textContent += ` (Psst... the number is ${isEven}!)`;
-                }
+function endGame(won) {
+  guessInput.disabled = true;
+  guessButton.style.display = "none";
+  resetButton.style.display = "inline-block";
+  if (won) {
+    marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">YE HEBT GEWONNEN</marquee>';
+    
+    // Medaille logica
+    if (count <= 3) {
+      medalMessage.textContent = "Gold Medal Awarded!";
+      medalMessage.style.color = "#d4af37";
+    } else if (count <= 6) {
+      medalMessage.textContent = "Silver Medal Awarded!";
+      medalMessage.style.color = "#aaa9ad";
+    } else {
+      medalMessage.textContent = "Bronze Medal Awarded!";
+      medalMessage.style.color = "#cd7f32";
+    }
 
-                const verschil = Math.abs(userGuess - randomNumber);
-                if (verschil <= 5) {
-                    gameBody.style.backgroundColor = "#ff5722";
-                } else if (verschil <= 15) {
-                    gameBody.style.backgroundColor = "#ff9800";
-                } else if (verschil <= 30) {
-                    gameBody.style.backgroundColor = "#ffeb3b";
-                } else {
-                    gameBody.style.backgroundColor = "#3498db";
-                }
-            }
-        });
+    let newRecord = false;
+    if (count < bestScore) {
+      bestScore = count;
+      localStorage.setItem("guessBestScore", bestScore);
+      bestScoreDisplay.textContent = bestScore;
+      newRecord = true;
+    }
+    if (finalTime < bestTime) {
+      bestTime = finalTime;
+      localStorage.setItem("guessBestTime", bestTime);
+      bestTimeDisplay.textContent = bestTime;
+      newRecord = true;
+    }
+    if (newRecord) {
+      message.textContent += " New Best Score!";
+    }
+  }
+}
 
-        function endGame(won) {
-            guessInput.disabled = true;
-            guessButton.style.display = "none";
-            resetButton.style.display = "inline-block";
-
-            if (won) {
-                marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">YE HEBT GEWONNEN</marquee>';
-                
-                // Medaillesysteem op basis van pogingen
-                if (count <= 3) {
-                    medalDisplay.textContent = "🥇 Goud!";
-                } else if (count <= 6) {
-                    medalDisplay.textContent = "🥈 Zilver!";
-                } else {
-                    medalDisplay.textContent = "🥉 Brons!";
-                }
-
-                let newRecord = false;
-                if (count < bestScore) {
-                    bestScore = count;
-                    localStorage.setItem("guessBestScore", bestScore);
-                    bestScoreDisplay.textContent = bestScore;
-                    newRecord = true;
-                }
-                if (finalTime < bestTime) {
-                    bestTime = finalTime;
-                    localStorage.setItem("guessBestTime", bestTime);
-                    bestTimeDisplay.textContent = bestTime;
-                    newRecord = true;
-                }
-                if (newRecord) {
-                    message.textContent += " New Best Score!";
-                }
-            } else {
-                marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">nou wil je .... opnieuw ja of neee?</marquee>';
-            }
-        }
-
-        resetButton.addEventListener("click", function() {
-            clearInterval(timerInterval);
-            gameStarted = false;
-            finalTime = 0;
-            timerDisplay.textContent = "0";
-            randomNumber = Math.floor(Math.random() * 100) + 1;
-            count = 0;
-            minRange = 1;
-            maxRange = 100;
-            guessCount.textContent = count;
-            message.textContent = "";
-            medalDisplay.textContent = "";
-            rangeText.textContent = "I'm thinking of a number between 1 and 100.";
-            guessInput.value = "";
-            guessInput.disabled = false;
-            guessButton.style.display = "inline-block";
-            resetButton.style.display = "none";
-            gameBody.style.backgroundColor = "lightblue";
-            marqueeContainer.innerHTML = "";
-        });
-    </script>
+resetButton.addEventListener("click", resetGame);
+setDifficultyMax();
+</script>
 </center>
 </body>
 </html>
-
