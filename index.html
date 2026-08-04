@@ -13,6 +13,8 @@
   <option value="easy">Easy (1–50)</option>
   <option value="medium" selected>Medium (1–100)</option>
   <option value="hard">Hard (1–500)</option>
+  <option value="expert">Expert (1–1000)</option>
+  <option value="master">Master (1–2000)</option>
 </select>
 <p id="rangeText">I'm thinking of a number between 1 and 100.</p>
 <input id="guessInput" type="number">
@@ -20,7 +22,7 @@
 <button id="resetButton" style="display: none;">Play Again</button>
 <p id="message"></p>
 <p id="medalMessage" style="font-size: 1.2em; font-weight: bold; margin: 5px 0;"></p>
-<p>Guesses: <span id="guessCount">0</span> / 10</p>
+<p>Guesses: <span id="guessCount">0</span> / <span id="maxGuessDisplay">10</span></p>
 <p>Time: <span id="timerDisplay">0</span>s</p>
 <p>Best Score: <span id="bestScore">--</span> guesses</p>
 <p>Best Time: <span id="bestTime">--</span>s</p>
@@ -30,7 +32,7 @@
 let currentMax = 100;
 let randomNumber = Math.floor(Math.random() * currentMax) + 1;
 let count = 0;
-const maxGuesses = 10;
+let maxGuesses = 10;
 let minRange = 1;
 let maxRange = 100;
 let startTime;
@@ -45,6 +47,7 @@ const resetButton = document.getElementById("resetButton");
 const message = document.getElementById("message");
 const medalMessage = document.getElementById("medalMessage");
 const guessCount = document.getElementById("guessCount");
+const maxGuessDisplay = document.getElementById("maxGuessDisplay");
 const bestScoreDisplay = document.getElementById("bestScore");
 const bestTimeDisplay = document.getElementById("bestTime");
 const rangeText = document.getElementById("rangeText");
@@ -59,10 +62,24 @@ if (bestTime !== Infinity) { bestTimeDisplay.textContent = bestTime; }
 
 function setDifficultyMax() {
   const val = difficultySelect.value;
-  if (val === "easy") currentMax = 50;
-  else if (val === "medium") currentMax = 100;
-  else if (val === "hard") currentMax = 500;
+  if (val === "easy") {
+    currentMax = 50;
+    maxGuesses = 10;
+  } else if (val === "medium") {
+    currentMax = 100;
+    maxGuesses = 10;
+  } else if (val === "hard") {
+    currentMax = 500;
+    maxGuesses = 10;
+  } else if (val === "expert") {
+    currentMax = 1000;
+    maxGuesses = 12;
+  } else if (val === "master") {
+    currentMax = 2000;
+    maxGuesses = 15;
+  }
   maxRange = currentMax;
+  maxGuessDisplay.textContent = maxGuesses;
 }
 
 function resetGame() {
@@ -142,12 +159,15 @@ guessButton.addEventListener("click", function() {
       const isEven = randomNumber % 2 === 0 ? "EVEN" : "ODD";
       message.textContent += ` (Psst... the number is ${isEven}!)`;
     }
+    
+    // Kleurindicatie schaalt nu mee op basis van de gekozen moeilijkheid
     const verschil = Math.abs(userGuess - randomNumber);
-    if (verschil <= 5) {
+    const schaal = currentMax / 100; 
+    if (verschil <= 5 * schaal) {
       gameBody.style.backgroundColor = "#ff5722";
-    } else if (verschil <= 15) {
+    } else if (verschil <= 15 * schaal) {
       gameBody.style.backgroundColor = "#ff9800";
-    } else if (verschil <= 30) {
+    } else if (verschil <= 30 * schaal) {
       gameBody.style.backgroundColor = "#ffeb3b";
     } else {
       gameBody.style.backgroundColor = "#3498db";
@@ -162,11 +182,18 @@ function endGame(won) {
   if (won) {
     marqueeContainer.innerHTML = '<marquee style="font-weight: bold; color: red; font-size: 1.2em;">YE HEBT GEWONNEN</marquee>';
     
-    // Medaille logica
-    if (count <= 3) {
+    // Medaille logica schaalt mee met de moeilijkheidsgraad
+    let goldCutoff = 3;
+    let silverCutoff = 6;
+    if (currentMax >= 1000) {
+      goldCutoff = 5;
+      silverCutoff = 9;
+    }
+
+    if (count <= goldCutoff) {
       medalMessage.textContent = "Gold Medal Awarded!";
       medalMessage.style.color = "#d4af37";
-    } else if (count <= 6) {
+    } else if (count <= silverCutoff) {
       medalMessage.textContent = "Silver Medal Awarded!";
       medalMessage.style.color = "#aaa9ad";
     } else {
